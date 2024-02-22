@@ -5,7 +5,6 @@ import {
     Get,
     Param,
     ParseUUIDPipe,
-    Patch,
     Post,
     Query,
     SerializeOptions,
@@ -13,18 +12,18 @@ import {
     ValidationPipe,
 } from '@nestjs/common';
 
-import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
-import { PostService } from '@/modules/content/services';
+import { CreateCommentDto, QueryCommentDto, QueryCommentTreeDto } from '@/modules/content/dtos';
+import { CommentService } from '@/modules/content/services';
 import { AppIntercepter } from '@/modules/core/providers';
 
 @UseInterceptors(AppIntercepter)
-@Controller('posts')
-export class PostController {
-    constructor(private postService: PostService) {}
+@Controller('comments')
+export class CommentController {
+    constructor(protected service: CommentService) {}
 
-    @Get()
-    @SerializeOptions({ groups: ['post-list'] })
-    async list(
+    @Get('tree')
+    @SerializeOptions({ groups: ['comment-tree'] })
+    async tree(
         @Query(
             new ValidationPipe({
                 transform: true,
@@ -34,54 +33,46 @@ export class PostController {
                 validationError: { target: false },
             }),
         )
-        options: QueryPostDto,
+        query: QueryCommentTreeDto,
     ) {
-        return this.postService.paginate(options);
+        return this.service.findTrees(query);
     }
 
-    @Get(':id')
-    @SerializeOptions({ groups: ['post-detail'] })
-    async detail(@Param('id', new ParseUUIDPipe()) id: string) {
-        return this.postService.detail(id);
+    @Get()
+    @SerializeOptions({ groups: ['comment-list'] })
+    async list(
+        @Query(
+            new ValidationPipe({
+                transform: true,
+                forbidUnknownValues: true,
+                validationError: { target: false },
+            }),
+        )
+        query: QueryCommentDto,
+    ) {
+        return this.service.paginate(query);
     }
 
     @Post()
-    @SerializeOptions({ groups: ['post-detail'] })
+    @SerializeOptions({ groups: ['comment-detail'] })
     async store(
         @Body(
             new ValidationPipe({
                 transform: true,
+                whitelist: true,
                 forbidNonWhitelisted: true,
                 forbidUnknownValues: true,
                 validationError: { target: false },
-                groups: ['create'],
             }),
         )
-        data: CreatePostDto,
+        data: CreateCommentDto,
     ) {
-        return this.postService.create(data);
-    }
-
-    @Patch()
-    @SerializeOptions({ groups: ['post-detail'] })
-    async update(
-        @Body(
-            new ValidationPipe({
-                transform: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-                groups: ['update'],
-            }),
-        )
-        data: UpdatePostDto,
-    ) {
-        return this.postService.update(data);
+        return this.service.create(data);
     }
 
     @Delete(':id')
-    @SerializeOptions({ groups: ['post-detail'] })
+    @SerializeOptions({ groups: ['comment-detail'] })
     async delete(@Param('id', new ParseUUIDPipe()) id: string) {
-        return this.postService.delete(id);
+        return this.service.delete(id);
     }
 }

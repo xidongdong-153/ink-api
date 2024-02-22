@@ -11,7 +11,9 @@ export class PostSubscriber {
         protected dataSource: DataSource,
         protected sanitizeService: SanitizeService,
         protected postRepository: PostRepository,
-    ) {}
+    ) {
+        dataSource.subscribers.push(this);
+    }
 
     listenTo() {
         return PostEntity;

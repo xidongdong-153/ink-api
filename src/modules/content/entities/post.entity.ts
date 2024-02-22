@@ -1,20 +1,30 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
+
 import {
     BaseEntity,
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
+    JoinTable,
+    ManyToMany,
+    ManyToOne,
+    OneToMany,
     PrimaryColumn,
+    Relation,
     UpdateDateColumn,
 } from 'typeorm';
 
 import { PostBodyType } from '@/modules/content/constants';
+import { CategoryEntity } from '@/modules/content/entities/category.entity';
+import { CommentEntity } from '@/modules/content/entities/comment.entity';
+import { TagEntity } from '@/modules/content/entities/tag.entity';
 
 @Exclude()
 @Entity('content_posts')
 export class PostEntity extends BaseEntity {
     @Expose()
-    @PrimaryColumn({ type: 'varchar', generated: 'uuid', length: '36' })
+    @PrimaryColumn({ type: 'varchar', generated: 'uuid', length: 36 })
     id: string;
 
     @Expose()
@@ -26,30 +36,73 @@ export class PostEntity extends BaseEntity {
     body: string;
 
     @Expose()
-    @Column({ comment: '文章摘要', nullable: true })
-    summary: string;
+    @Column({ comment: '文章描述', nullable: true })
+    summary?: string;
 
     @Expose()
     @Column({ comment: '关键字', type: 'simple-array', nullable: true })
     keywords?: string[];
 
     @Expose()
-    @Column({ comment: '文章类型', type: 'varchar', default: PostBodyType.MD })
+    @Column({
+        comment: '文章类型',
+        type: 'varchar',
+        // 如果是mysql或者postgresql你可以使用enum类型
+        // enum: PostBodyType,
+        default: PostBodyType.MD,
+    })
     type: PostBodyType;
 
     @Expose()
-    @Column({ comment: '发布时间', type: 'varchar', nullable: true })
+    @Column({
+        comment: '发布时间',
+        type: 'varchar',
+        nullable: true,
+    })
     publishedAt?: Date | null;
 
     @Expose()
-    @CreateDateColumn({ comment: '创建时间' })
+    @Column({ comment: '自定义文章排序', default: 0 })
+    customOrder: number;
+
+    @Expose()
+    @Type(() => Date)
+    @CreateDateColumn({
+        comment: '创建时间',
+    })
     createdAt: Date;
 
     @Expose()
-    @UpdateDateColumn({ comment: '更新时间' })
+    @Type(() => Date)
+    @UpdateDateColumn({
+        comment: '更新时间',
+    })
     updatedAt: Date;
 
     @Expose()
-    @Column({ comment: '文章自定义排序', default: 0 })
-    customOrder: number;
+    @Type(() => Date)
+    @DeleteDateColumn({
+        comment: '删除时间',
+    })
+    deletedAt: Date;
+
+    @Expose()
+    @ManyToOne(() => CategoryEntity, (category) => category.posts, {
+        nullable: true,
+        onDelete: 'SET NULL',
+    })
+    category: Relation<CategoryEntity>;
+
+    @Expose()
+    @Type(() => TagEntity)
+    @ManyToMany(() => TagEntity, (tag) => tag.posts, {
+        cascade: ['insert'],
+    })
+    @JoinTable()
+    tags: Relation<TagEntity>[];
+
+    @OneToMany(() => CommentEntity, (comment) => comment.post, {
+        cascade: true,
+    })
+    comments: Relation<CommentEntity>[];
 }
