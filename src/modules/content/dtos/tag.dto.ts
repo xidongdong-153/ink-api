@@ -11,8 +11,10 @@ import {
 } from 'class-validator';
 import { toNumber } from 'lodash';
 
+import { TagEntity } from '@/modules/content/entities';
 import { DtoValidation } from '@/modules/core/decorators';
-import type { PaginateOptions } from '@/modules/database/types';
+import { IsUnique, IsUniqueExist } from '@/modules/database/constraints';
+import { PaginateOptions } from '@/modules/database/types';
 
 /**
  * 标签分页查询验证
@@ -37,6 +39,14 @@ export class QueryTagDto implements PaginateOptions {
  */
 @DtoValidation({ groups: ['create'] })
 export class CreateTagDto {
+    @IsUnique(TagEntity, {
+        groups: ['create'],
+        message: '标签名称重复',
+    })
+    @IsUniqueExist(TagEntity, {
+        groups: ['update'],
+        message: '标签名称重复',
+    })
     @MaxLength(255, {
         always: true,
         message: '标签名称长度最大为$constraint1',

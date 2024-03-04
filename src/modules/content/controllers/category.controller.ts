@@ -11,11 +11,7 @@ import {
     SerializeOptions,
 } from '@nestjs/common';
 
-import type {
-    CreateCategoryDto,
-    QueryCategoryDto,
-    UpdateCategoryDto,
-} from '@/modules/content/dtos';
+import { CreateCategoryDto, QueryCategoryDto, UpdateCategoryDto } from '@/modules/content/dtos';
 import { CategoryService } from '@/modules/content/services';
 
 @Controller('categories')
@@ -39,16 +35,13 @@ export class CategoryController {
 
     @Get(':id')
     @SerializeOptions({ groups: ['category-detail'] })
-    async detail(
-        @Param('id', new ParseUUIDPipe())
-        id: string,
-    ) {
+    async detail(@Param('id', new ParseUUIDPipe()) id: string) {
         return this.service.detail(id);
     }
 
     @Post()
     @SerializeOptions({ groups: ['category-detail'] })
-    async store(
+    async create(
         @Body()
         data: CreateCategoryDto,
     ) {
