@@ -13,6 +13,7 @@ import {
 
 import { CreateCategoryDto, QueryCategoryDto, UpdateCategoryDto } from '@/modules/content/dtos';
 import { CategoryService } from '@/modules/content/services';
+import type { DeleteDto } from '@/modules/restful/dtos';
 
 @Controller('categories')
 export class CategoryController {
@@ -57,9 +58,13 @@ export class CategoryController {
         return this.service.update(data);
     }
 
-    @Delete(':id')
-    @SerializeOptions({ groups: ['category-detail'] })
-    async delete(@Param('id', new ParseUUIDPipe()) id: string) {
-        return this.service.delete(id);
+    @Delete()
+    @SerializeOptions({ groups: ['category-list'] })
+    async delete(
+        @Body()
+        data: DeleteDto,
+    ) {
+        const { ids } = data;
+        return this.service.delete(ids);
     }
 }

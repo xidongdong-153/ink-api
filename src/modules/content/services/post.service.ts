@@ -11,6 +11,7 @@ import { PostEntity } from '@/modules/content/entities';
 import { CategoryRepository, PostRepository, TagRepository } from '@/modules/content/repositories';
 
 import { CategoryService } from '@/modules/content/services';
+import { SelectTrashMode } from '@/modules/database/constants';
 import { paginate } from '@/modules/database/helpers';
 import { QueryHook } from '@/modules/database/types';
 
@@ -114,12 +115,50 @@ export class PostService {
     }
 
     /**
-     * 删除文章
-     * @param id
+     * 批量删除文章
+     * @param ids
+     * @param trash
      */
-    async delete(id: string) {
-        const item = await this.repository.findOneByOrFail({ id });
-        return this.repository.remove(item);
+    async delete(ids: string[], trash?: boolean) {
+        const items = await this.repository
+            .buildBaseQB()
+            .where('post.id IN (:...ids)', { ids })
+            .withDeleted()
+            .getMany();
+        let result: PostEntity[] = [];
+        if (trash) {
+            // 对已软删除的数据再次删除时直接通过remove方法从数据库中清除
+            const directs = items.filter((item) => !isNil(item.deletedAt));
+            const softs = items.filter((item) => isNil(item.deletedAt));
+            result = [
+                ...(await this.repository.remove(directs)),
+                ...(await this.repository.softRemove(softs)),
+            ];
+        } else {
+            result = await this.repository.remove(items);
+        }
+        return result;
+    }
+
+    /**
+     * 恢复文章
+     * @param ids
+     */
+    async restore(ids: string[]) {
+        const items = await this.repository
+            .buildBaseQB()
+            .where('post.id IN (:...ids)', { ids })
+            .withDeleted()
+            .getMany();
+        // 过滤掉不在回收站中的数据
+        const trasheds = items.filter((item) => !isNil(item));
+        const trashedsIds = trasheds.map((item) => item.id);
+        if (trasheds.length < 1) return [];
+        await this.repository.restore(trashedsIds);
+        const qb = await this.buildListQuery(this.repository.buildBaseQB(), {}, async (qbuilder) =>
+            qbuilder.andWhereInIds(trashedsIds),
+        );
+        return qb.getMany();
     }
 
     /**
@@ -133,7 +172,7 @@ export class PostService {
         options: FindParams,
         callback?: QueryHook<PostEntity>,
     ) {
-        const { category, tag, orderBy, isPublished } = options;
+        const { category, tag, orderBy, isPublished, trashed } = options;
         if (typeof isPublished === 'boolean') {
             isPublished
                 ? qb.where({
@@ -147,6 +186,11 @@ export class PostService {
         if (category) await this.queryByCategory(category, qb);
         // 查询某个标签关联的文章
         if (tag) qb.where('tags.id = :id', { id: tag });
+        // 是否查询回收站
+        if (trashed === SelectTrashMode.ALL || trashed === SelectTrashMode.ONLY) {
+            qb.withDeleted();
+            if (trashed === SelectTrashMode.ONLY) qb.where(`post.deletedAt is not null`);
+        }
         if (callback) return callback(qb);
         return qb;
     }

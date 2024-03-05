@@ -13,6 +13,7 @@ import {
 
 import { CreateTagDto, QueryCategoryDto, UpdateTagDto } from '@/modules/content/dtos';
 import { TagService } from '@/modules/content/services';
+import type { DeleteDto } from '@/modules/restful/dtos';
 
 @Controller('tags')
 export class TagController {
@@ -54,9 +55,13 @@ export class TagController {
         return this.service.update(data);
     }
 
-    @Delete(':id')
-    @SerializeOptions({})
-    async delete(@Param('id', new ParseUUIDPipe()) id: string) {
-        return this.service.delete(id);
+    @Delete()
+    @SerializeOptions({ groups: ['post-list'] })
+    async delete(
+        @Body()
+        data: DeleteDto,
+    ) {
+        const { ids } = data;
+        return this.service.delete(ids);
     }
 }
