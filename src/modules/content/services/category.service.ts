@@ -2,46 +2,27 @@ import { Injectable } from '@nestjs/common';
 
 import { isNil, omit } from 'lodash';
 
-import { EntityNotFoundError, In } from 'typeorm';
+import { EntityNotFoundError } from 'typeorm';
 
-import { CreateCategoryDto, QueryCategoryDto, UpdateCategoryDto } from '@/modules/content/dtos';
+import { CreateCategoryDto, UpdateCategoryDto } from '@/modules/content/dtos';
 import { CategoryEntity } from '@/modules/content/entities';
 import { CategoryRepository } from '@/modules/content/repositories';
-import { treePaginate } from '@/modules/database/helpers';
+import { BaseService } from '@/modules/database/base';
 
 /**
  * 分类数据操作
  */
 @Injectable()
-export class CategoryService {
-    constructor(protected repository: CategoryRepository) {}
+export class CategoryService extends BaseService<CategoryEntity, CategoryRepository> {
+    constructor(protected repository: CategoryRepository) {
+        super(repository);
+    }
 
     /**
      * 查询分类树
      */
     async findTrees() {
         return this.repository.findTrees();
-    }
-
-    /**
-     * 获取分页数据
-     * @param options 分页选项
-     */
-    async paginate(options: QueryCategoryDto) {
-        const tree = await this.repository.findTrees();
-        const data = await this.repository.toFlatTrees(tree);
-        return treePaginate(options, data);
-    }
-
-    /**
-     * 获取数据详情
-     * @param id
-     */
-    async detail(id: string) {
-        return this.repository.findOneOrFail({
-            where: { id },
-            relations: ['parent'],
-        });
     }
 
     /**
@@ -77,27 +58,6 @@ export class CategoryService {
             await this.repository.save(item, { reload: true });
         }
         return item;
-    }
-
-    /**
-     * 批量删除分类
-     * @param ids
-     */
-    async delete(ids: string[]) {
-        const items = await this.repository.find({
-            where: { id: In(ids) as any },
-            relations: ['parent', 'children'],
-        });
-        for (const item of items) {
-            if (isNil(item.children) || item.children.length <= 0) continue;
-            // 把子分类提升一级
-            const nchildren = [...item.children].map((c) => {
-                c.parent = item.parent;
-                return item;
-            });
-            await this.repository.save(nchildren);
-        }
-        return this.repository.remove(items);
     }
 
     /**

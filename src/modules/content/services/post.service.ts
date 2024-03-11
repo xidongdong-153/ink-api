@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
 import { isArray } from 'class-validator';
-import { isFunction, isNil, omit, pick } from 'lodash';
+import { isNil, omit, pick } from 'lodash';
 
-import { EntityNotFoundError, In, IsNull, Not, type SelectQueryBuilder } from 'typeorm';
+import { In, IsNull, Not, SelectQueryBuilder } from 'typeorm';
 
 import { PostOrderType } from '@/modules/content/constants';
 import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
@@ -12,6 +12,7 @@ import { CategoryRepository, PostRepository, TagRepository } from '@/modules/con
 
 import { CategoryService, SearchService } from '@/modules/content/services';
 import { SearchType } from '@/modules/content/types';
+import { BaseService } from '@/modules/database/base';
 import { SelectTrashMode } from '@/modules/database/constants';
 import { paginate } from '@/modules/database/helpers';
 import { QueryHook } from '@/modules/database/types';
@@ -22,7 +23,9 @@ type FindParams = {
 };
 
 @Injectable()
-export class PostService {
+export class PostService extends BaseService<PostEntity, PostRepository, FindParams> {
+    protected enableTrash = true;
+
     constructor(
         protected repository: PostRepository,
         protected categoryRepository: CategoryRepository,
@@ -30,7 +33,9 @@ export class PostService {
         protected tagRepository: TagRepository,
         protected searchService?: SearchService,
         protected search_type: SearchType = 'mysql',
-    ) {}
+    ) {
+        super(repository);
+    }
 
     /**
      * 获取分页数据
@@ -41,25 +46,11 @@ export class PostService {
         if (!isNil(this.searchService) && !isNil(options.search) && this.search_type === 'meili') {
             return this.searchService.search(
                 options.search,
-                pick(options, ['trashed', 'page', 'limit']),
-            );
+                pick(options, ['trashed', 'page', 'limit', 'isPublished']),
+            ) as any;
         }
         const qb = await this.buildListQuery(this.repository.buildBaseQB(), options, callback);
         return paginate(qb, options);
-    }
-
-    /**
-     * 查询单篇文章
-     * @param id
-     * @param callback 添加额外的查询
-     */
-    async detail(id: string, callback?: QueryHook<PostEntity>) {
-        let qb = this.repository.buildBaseQB();
-        qb.where(`post.id = :id`, { id });
-        qb = !isNil(callback) && isFunction(callback) ? await callback(qb) : qb;
-        const item = await qb.getOne();
-        if (!item) throw new EntityNotFoundError(PostEntity, `The post ${id} not exists!`);
-        return item;
     }
 
     /**
@@ -175,7 +166,9 @@ export class PostService {
         const trashedsIds = trasheds.map((item) => item.id);
         if (trasheds.length < 1) return [];
         await this.repository.restore(trashedsIds);
-        await this.searchService.update(trasheds);
+        if (!isNil(this.searchService)) {
+            await this.searchService.update(trasheds);
+        }
         const qb = await this.buildListQuery(this.repository.buildBaseQB(), {}, async (qbuilder) =>
             qbuilder.andWhereInIds(trashedsIds),
         );

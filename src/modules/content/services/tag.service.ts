@@ -2,27 +2,18 @@ import { Injectable } from '@nestjs/common';
 
 import { omit } from 'lodash';
 
-import { In } from 'typeorm';
-
-import { CreateTagDto, QueryTagDto, UpdateTagDto } from '@/modules/content/dtos';
+import { CreateTagDto, UpdateTagDto } from '@/modules/content/dtos';
+import { TagEntity } from '@/modules/content/entities';
 import { TagRepository } from '@/modules/content/repositories';
-import { paginate } from '@/modules/database/helpers';
+import { BaseService } from '@/modules/database/base';
 
 /**
  * 标签数据操作
  */
 @Injectable()
-export class TagService {
-    constructor(protected repository: TagRepository) {}
-
-    /**
-     * 获取标签数据
-     * @param options 分页选项
-     * @param callback 添加额外的查询
-     */
-    async paginate(options: QueryTagDto) {
-        const qb = this.repository.buildBaseQB();
-        return paginate(qb, options);
+export class TagService extends BaseService<TagEntity, TagRepository> {
+    constructor(protected repository: TagRepository) {
+        super(repository);
     }
 
     /**
@@ -52,16 +43,5 @@ export class TagService {
     async update(data: UpdateTagDto) {
         await this.repository.update(data.id, omit(data, ['id']));
         return this.detail(data.id);
-    }
-
-    /**
-     * 批量删除标签
-     * @param ids
-     */
-    async delete(ids: string[]) {
-        const items = await this.repository.find({
-            where: { id: In(ids) },
-        });
-        return this.repository.remove(items);
     }
 }
