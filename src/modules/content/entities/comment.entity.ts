@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    Index,
     ManyToOne,
     PrimaryColumn,
     Relation,
@@ -25,7 +24,6 @@ export class CommentEntity extends BaseEntity {
 
     @Expose()
     @Column({ comment: '评论内容', type: 'text' })
-    @Index({ fulltext: true })
     body: string;
 
     @Expose()

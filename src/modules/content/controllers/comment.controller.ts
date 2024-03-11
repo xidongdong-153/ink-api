@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Post, Query, SerializeOptions } from '@n
 
 import { CreateCommentDto, QueryCommentDto, QueryCommentTreeDto } from '@/modules/content/dtos';
 import { CommentService } from '@/modules/content/services';
-import type { DeleteDto } from '@/modules/restful/dtos';
+import { DeleteDto } from '@/modules/restful/dtos';
 
 @Controller('comments')
 export class CommentController {

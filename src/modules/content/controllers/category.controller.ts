@@ -13,7 +13,7 @@ import {
 
 import { CreateCategoryDto, QueryCategoryDto, UpdateCategoryDto } from '@/modules/content/dtos';
 import { CategoryService } from '@/modules/content/services';
-import type { DeleteDto } from '@/modules/restful/dtos';
+import { DeleteDto } from '@/modules/restful/dtos';
 
 @Controller('categories')
 export class CategoryController {

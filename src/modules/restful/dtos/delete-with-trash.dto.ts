@@ -1,9 +1,12 @@
 import { Transform } from 'class-transformer';
+
 import { IsBoolean, IsDefined, IsOptional, IsUUID } from 'class-validator';
-import { toBoolean } from 'validator';
 
 import { DtoValidation } from '@/modules/core/decorators';
-import { DeleteDto } from '@/modules/restful/dtos';
+
+import { toBoolean } from '@/modules/core/helpers';
+
+import { DeleteDto } from './delete.dto';
 
 /**
  * 带软删除的批量删除验证

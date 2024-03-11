@@ -1,4 +1,4 @@
-import { pick, unset } from 'lodash';
+import { isNil, pick, unset } from 'lodash';
 
 import {
     FindOptionsUtils,
@@ -144,6 +144,17 @@ export class CategoryRepository extends TreeRepository<CategoryEntity> {
     async countAncestors(entity: CategoryEntity) {
         const qb = this.createAncestorsQueryBuilder('category', 'treeClosure', entity);
         return qb.getCount();
+    }
+
+    async flatAncestorsTree(item: CategoryEntity) {
+        let data: Omit<CategoryEntity, 'children'>[] = [];
+        const category = await this.findAncestorsTree(item);
+        const { parent } = category;
+        unset(category, 'children');
+        unset(category, 'parent');
+        data.push(item);
+        if (!isNil(parent)) data = [...(await this.flatAncestorsTree(parent)), ...data];
+        return data as CategoryEntity[];
     }
 
     /**

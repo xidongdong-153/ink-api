@@ -13,7 +13,7 @@ import {
 
 import { CreateTagDto, QueryCategoryDto, UpdateTagDto } from '@/modules/content/dtos';
 import { TagService } from '@/modules/content/services';
-import type { DeleteDto } from '@/modules/restful/dtos';
+import { DeleteDto } from '@/modules/restful/dtos';
 
 @Controller('tags')
 export class TagController {

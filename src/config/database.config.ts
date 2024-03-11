@@ -1,10 +1,15 @@
-import { resolve } from 'path';
-
-import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 export const database = (): TypeOrmModuleOptions => ({
-    type: 'better-sqlite3',
-    database: resolve(__dirname, '../../back/database.db'),
+    // 以下为mysql配置
+    charset: 'utf8mb4',
+    logging: ['error'],
+    type: 'mysql',
+    host: '127.0.0.1',
+    port: 3306,
+    username: 'xidongdong',
+    password: '123456789',
+    database: 'ink-api',
     synchronize: true,
     autoLoadEntities: true,
 });

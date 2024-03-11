@@ -12,8 +12,9 @@ import {
 } from '@nestjs/common';
 
 import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
-import { PostService } from '@/modules/content/services';
-import type { DeleteWithTrashDto, RestoreDto } from '@/modules/restful/dtos';
+
+import { PostService } from '@/modules/content/services/post.service';
+import { DeleteWithTrashDto, RestoreDto } from '@/modules/restful/dtos';
 
 @Controller('posts')
 export class PostController {
