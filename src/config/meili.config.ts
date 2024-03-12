@@ -1,9 +1,9 @@
-import { MeliConfig } from '@/modules/meilisearch/types';
+import { createMeilliConfig } from '@/modules/meilisearch/config';
 
-export const meili = (): MeliConfig => [
+export const meilli = createMeilliConfig((configure) => [
     {
         name: 'default',
         host: 'http://localhost:7700',
         apiKey: 'ink-api-153',
     },
-];
+]);

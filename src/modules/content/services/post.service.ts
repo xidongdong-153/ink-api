@@ -10,7 +10,8 @@ import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dt
 import { PostEntity } from '@/modules/content/entities';
 import { CategoryRepository, PostRepository, TagRepository } from '@/modules/content/repositories';
 
-import { CategoryService, SearchService } from '@/modules/content/services';
+import { CategoryService } from '@/modules/content/services';
+import { SearchService } from '@/modules/content/services/search.service';
 import { SearchType } from '@/modules/content/types';
 import { BaseService } from '@/modules/database/base';
 import { SelectTrashMode } from '@/modules/database/constants';

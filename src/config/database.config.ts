@@ -1,15 +1,23 @@
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { toNumber } from 'lodash';
 
-export const database = (): TypeOrmModuleOptions => ({
-    // 以下为mysql配置
-    charset: 'utf8mb4',
-    logging: ['error'],
-    type: 'mysql',
-    host: '127.0.0.1',
-    port: 3306,
-    username: 'xidongdong',
-    password: '123456789',
-    database: 'ink-api',
-    synchronize: true,
-    autoLoadEntities: true,
-});
+import { createDbConfig } from '@/modules/database/config';
+
+export const database = createDbConfig((configure) => ({
+    common: {
+        synchronize: true,
+    },
+    connections: [
+        {
+            type: 'mysql',
+            host: configure.env.get('DB_HOST', '127.0.0.1'),
+            port: configure.env.get('DB_PORT', (v) => toNumber(v), 3306),
+            username: configure.env.get('DB_USERNAME', 'root'),
+            password: configure.env.get('DB_PASSWORD', '123456789'),
+            database: configure.env.get('DB_NAME', 'ink-api'),
+        },
+        // {
+        // type: 'better-sqlite3',
+        // database: resolve(__dirname, configure.env.get('DB_PATH', '../../database.db')),
+        // },
+    ],
+}));

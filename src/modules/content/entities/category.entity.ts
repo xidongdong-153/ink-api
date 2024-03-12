@@ -5,10 +5,10 @@ import {
     Entity,
     OneToMany,
     PrimaryColumn,
-    Relation,
     Tree,
     TreeChildren,
     TreeParent,
+    type Relation,
 } from 'typeorm';
 
 import { PostEntity } from '@/modules/content/entities/post.entity';

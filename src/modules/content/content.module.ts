@@ -1,12 +1,17 @@
-import { DynamicModule, Module, ModuleMetadata } from '@nestjs/common';
+import { Module, ModuleMetadata } from '@nestjs/common';
+
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { PostService } from '@/modules/content/services/post.service';
 import { SanitizeService } from '@/modules/content/services/sanitize.service';
+import { SearchService } from '@/modules/content/services/search.service';
 import { PostSubscriber } from '@/modules/content/subscribers';
 import { ContentConfig } from '@/modules/content/types';
-import { DatabaseModule } from '@/modules/database/database.module';
 
+import { Configure } from '../config/configure';
+import { DatabaseModule } from '../database/database.module';
+
+import { defaultContentConfig } from './config';
 import * as controllers from './controllers';
 import * as entities from './entities';
 import * as repositories from './repositories';
@@ -14,14 +19,10 @@ import * as services from './services';
 
 @Module({})
 export class ContentModule {
-    static forRoot(configRegister?: () => ContentConfig): DynamicModule {
-        const config: Required<ContentConfig> = {
-            searchType: 'mysql',
-            ...(configRegister ? configRegister() : {}),
-        };
+    static async forRoot(configure: Configure) {
+        const config = await configure.get<ContentConfig>('content', defaultContentConfig);
         const providers: ModuleMetadata['providers'] = [
             ...Object.values(services),
-            SanitizeService,
             PostSubscriber,
             {
                 provide: PostService,
@@ -30,14 +31,14 @@ export class ContentModule {
                     repositories.CategoryRepository,
                     services.CategoryService,
                     repositories.TagRepository,
-                    { token: services.SearchService, optional: true },
+                    { token: SearchService, optional: true },
                 ],
                 useFactory(
                     postRepository: repositories.PostRepository,
                     categoryRepository: repositories.CategoryRepository,
                     categoryService: services.CategoryService,
                     tagRepository: repositories.TagRepository,
-                    searchService: services.SearchService,
+                    searchService: SearchService,
                 ) {
                     return new PostService(
                         postRepository,
@@ -50,7 +51,19 @@ export class ContentModule {
                 },
             },
         ];
-        if (config.searchType === 'meili') providers.push(services.SearchService);
+        const exports: ModuleMetadata['exports'] = [
+            ...Object.values(services),
+            PostService,
+            DatabaseModule.forRepository(Object.values(repositories)),
+        ];
+        if (config.htmlEnabled) {
+            providers.push(SanitizeService);
+            exports.push(SanitizeService);
+        }
+        if (config.searchType === 'meili') {
+            providers.push(SearchService);
+            exports.push(SearchService);
+        }
         return {
             module: ContentModule,
             imports: [
@@ -59,11 +72,7 @@ export class ContentModule {
             ],
             controllers: Object.values(controllers),
             providers,
-            exports: [
-                ...Object.values(services),
-                PostService,
-                DatabaseModule.forRepository(Object.values(repositories)),
-            ],
+            exports,
         };
     }
 }

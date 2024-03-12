@@ -1,12 +1,15 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
-import { createMeiliOptions } from '@/modules/meilisearch/helpers';
+import { Configure } from '@/modules/config/configure';
+import { panic } from '@/modules/core/helpers/command';
 import { MeiliService } from '@/modules/meilisearch/meili.service';
-import { MeliConfig } from '@/modules/meilisearch/types';
 
 @Module({})
 export class MeiliModule {
-    static forRoot(configRegister: () => MeliConfig): DynamicModule {
+    static async forRoot(configure: Configure) {
+        if (!configure.has('meilli')) {
+            panic({ message: 'MeilliSearch config not exists or not right!' });
+        }
         return {
             global: true,
             module: MeiliModule,
@@ -14,9 +17,7 @@ export class MeiliModule {
                 {
                     provide: MeiliService,
                     useFactory: async () => {
-                        const service = new MeiliService(
-                            await createMeiliOptions(configRegister()),
-                        );
+                        const service = new MeiliService(await configure.get('meilli'));
                         service.createClients();
                         return service;
                     },
