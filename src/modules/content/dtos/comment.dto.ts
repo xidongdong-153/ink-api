@@ -1,45 +1,28 @@
 import { PickType } from '@nestjs/swagger';
+
 import { Transform } from 'class-transformer';
-import {
-    IsDefined,
-    IsNotEmpty,
-    IsNumber,
-    IsOptional,
-    IsUUID,
-    MaxLength,
-    Min,
-    ValidateIf,
-} from 'class-validator';
-import { toNumber } from 'lodash';
+import { IsDefined, IsNotEmpty, IsOptional, IsUUID, MaxLength, ValidateIf } from 'class-validator';
 
 import { CommentEntity, PostEntity } from '@/modules/content/entities';
 import { DtoValidation } from '@/modules/core/decorators';
 import { IsDataExist } from '@/modules/database/constraints';
-import { PaginateOptions } from '@/modules/database/types';
+
+import { PaginateDto } from '@/modules/restful/dtos';
 
 /**
  * 评论分页查询验证
  */
 @DtoValidation({ type: 'query' })
-export class QueryCommentDto implements PaginateOptions {
+export class QueryCommentDto extends PaginateDto {
+    /**
+     * 所属文章ID
+     */
     @IsDataExist(PostEntity, {
         message: '文章不存在',
     })
     @IsUUID(undefined, { message: 'ID格式错误' })
     @IsOptional()
     post?: string;
-
-    @Transform(({ value }) => toNumber(value))
-    @Min(1, { message: '当前页必须大于1' })
-    @IsNumber()
-    @IsOptional()
-    page = 1;
-
-    @Transform(({ value }) => toNumber(value))
-    @Min(1, { message: '每页显示数据必须大于1' })
-    @IsNumber()
-    @IsOptional()
-    limit = 10;
 }
 
 /**
@@ -49,18 +32,27 @@ export class QueryCommentDto implements PaginateOptions {
 export class QueryCommentTreeDto extends PickType(QueryCommentDto, ['post']) {}
 
 /**
- * 评论添加验证
+ * 新增评论验证
  */
 @DtoValidation()
 export class CreateCommentDto {
+    /**
+     * 评论内容
+     */
     @MaxLength(1000, { message: '评论内容不能超过$constraint1个字' })
     @IsNotEmpty({ message: '评论内容不能为空' })
     body: string;
 
+    /**
+     * 所属文章ID
+     */
     @IsUUID(undefined, { message: 'ID格式错误' })
     @IsDefined({ message: 'ID必须指定' })
     post: string;
 
+    /**
+     * 上级评论ID
+     */
     @IsDataExist(CommentEntity, {
         message: '父评论不存在',
     })

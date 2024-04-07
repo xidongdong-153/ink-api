@@ -1,10 +1,11 @@
 import { Exclude, Expose } from 'class-transformer';
-import { Column, Entity, ManyToMany, PrimaryColumn, type Relation } from 'typeorm';
+import { Column, Entity, Index, ManyToMany, PrimaryColumn, type Relation } from 'typeorm';
 
 import { PostEntity } from '@/modules/content/entities/post.entity';
 
 @Exclude()
 @Entity('content_tags')
+@Index(['name'], { unique: true, fulltext: true })
 export class TagEntity {
     @Expose()
     @PrimaryColumn({ type: 'varchar', generated: 'uuid', length: 36 })

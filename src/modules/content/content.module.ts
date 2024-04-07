@@ -2,17 +2,16 @@ import { Module, ModuleMetadata } from '@nestjs/common';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { Configure } from '@/modules/config/configure';
 import { PostService } from '@/modules/content/services/post.service';
 import { SanitizeService } from '@/modules/content/services/sanitize.service';
 import { SearchService } from '@/modules/content/services/search.service';
 import { PostSubscriber } from '@/modules/content/subscribers';
 import { ContentConfig } from '@/modules/content/types';
 
-import { Configure } from '../config/configure';
-import { DatabaseModule } from '../database/database.module';
+import { DatabaseModule } from '@/modules/database/database.module';
 
 import { defaultContentConfig } from './config';
-import * as controllers from './controllers';
 import * as entities from './entities';
 import * as repositories from './repositories';
 import * as services from './services';
@@ -70,7 +69,7 @@ export class ContentModule {
                 TypeOrmModule.forFeature(Object.values(entities)),
                 DatabaseModule.forRepository(Object.values(repositories)),
             ],
-            controllers: Object.values(controllers),
+            // controllers: Object.values(controllers),
             providers,
             exports,
         };

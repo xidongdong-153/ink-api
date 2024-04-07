@@ -11,48 +11,76 @@ import {
     SerializeOptions,
 } from '@nestjs/common';
 
-import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
+import { ApiTags } from '@nestjs/swagger';
 
+import { ContentModule } from '@/modules/content/content.module';
+import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
 import { PostService } from '@/modules/content/services/post.service';
+import { Depends } from '@/modules/restful/decorators';
 import { DeleteWithTrashDto, RestoreDto } from '@/modules/restful/dtos';
 
+@ApiTags('文章操作')
+@Depends(ContentModule)
 @Controller('posts')
 export class PostController {
-    constructor(private postService: PostService) {}
+    constructor(protected service: PostService) {}
 
+    /**
+     * 查询文章列表
+     * @param options
+     */
     @Get()
     @SerializeOptions({ groups: ['post-list'] })
     async list(
         @Query()
         options: QueryPostDto,
     ) {
-        return this.postService.paginate(options);
+        return this.service.paginate(options);
     }
 
+    /**
+     * 查询文章详情
+     * @param id
+     */
     @Get(':id')
     @SerializeOptions({ groups: ['post-detail'] })
-    async detail(@Param('id', new ParseUUIDPipe()) id: string) {
-        return this.postService.detail(id);
+    async detail(
+        @Param('id', new ParseUUIDPipe())
+        id: string,
+    ) {
+        return this.service.detail(id);
     }
 
+    /**
+     * 新增文章
+     * @param data
+     */
     @Post()
     @SerializeOptions({ groups: ['post-detail'] })
     async store(
         @Body()
         data: CreatePostDto,
     ) {
-        return this.postService.create(data);
+        return this.service.create(data);
     }
 
+    /**
+     * 更新文章
+     * @param data
+     */
     @Patch()
     @SerializeOptions({ groups: ['post-detail'] })
     async update(
         @Body()
         data: UpdatePostDto,
     ) {
-        return this.postService.update(data);
+        return this.service.update(data);
     }
 
+    /**
+     * 删除文章
+     * @param data
+     */
     @Delete()
     @SerializeOptions({ groups: ['post-list'] })
     async delete(
@@ -60,9 +88,13 @@ export class PostController {
         data: DeleteWithTrashDto,
     ) {
         const { ids, trash } = data;
-        return this.postService.delete(ids, trash);
+        return this.service.delete(ids, trash);
     }
 
+    /**
+     * 恢复软删除文章
+     * @param data
+     */
     @Patch('restore')
     @SerializeOptions({ groups: ['post-list'] })
     async restore(
@@ -70,6 +102,6 @@ export class PostController {
         data: RestoreDto,
     ) {
         const { ids } = data;
-        return this.postService.restore(ids);
+        return this.service.restore(ids);
     }
 }
