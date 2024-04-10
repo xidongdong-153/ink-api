@@ -21,7 +21,8 @@
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
         "commit": "pnpm lint && git add . && better-commits",
-        "cli": "bun --bun src/console/bin.ts"
+        "cli": "bun --bun src/console/bin.ts",
+        "pm2": "cross-env NODE_ENV=production pnpm cli pm2"
     },
     "dependencies": {
         "@fastify/static": "^7.0.3",
@@ -42,6 +43,7 @@
         "lodash": "^4.17.21",
         "meilisearch": "^0.38.0",
         "mysql2": "^3.9.3",
+        "pm2": "^5.3.1",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.1",
         "sanitize-html": "^2.13.0",

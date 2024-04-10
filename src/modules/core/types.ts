@@ -1,6 +1,7 @@
 import { ModuleMetadata, PipeTransform, Type } from '@nestjs/common';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 
+import type { StartOptions } from 'pm2';
 import { CommandModule } from 'yargs';
 
 import { Configure } from '@/modules/config/configure';
@@ -119,6 +120,10 @@ export interface AppConfig {
      * 由url+api前缀生成的基础api url
      */
     prefix?: string;
+    /**
+     * PM2配置
+     */
+    pm2?: Omit<StartOptions, 'name' | 'cwd' | 'script' | 'args' | 'interpreter' | 'watch'>;
 }
 
 /**

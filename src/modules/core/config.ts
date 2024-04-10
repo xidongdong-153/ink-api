@@ -19,6 +19,7 @@ export const getDefaultAppConfig = (configure: Configure) => ({
     https: configure.env.get('APP_SSL', (v) => toBoolean(v), false),
     locale: configure.env.get('APP_LOCALE', 'zh_CN'),
     fallbackLocale: configure.env.get('APP_FALLBACK_LOCALE', 'en'),
+    pm2: {},
 });
 
 /**
