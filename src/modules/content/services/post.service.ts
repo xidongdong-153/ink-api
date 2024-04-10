@@ -12,7 +12,7 @@ import { CategoryRepository, PostRepository, TagRepository } from '@/modules/con
 
 import { CategoryService } from '@/modules/content/services';
 import { SearchService } from '@/modules/content/services/search.service';
-import { SearchType } from '@/modules/content/types';
+import { type SearchType } from '@/modules/content/types';
 import { BaseService } from '@/modules/database/base';
 import { SelectTrashMode } from '@/modules/database/constants';
 import { paginate } from '@/modules/database/helpers';

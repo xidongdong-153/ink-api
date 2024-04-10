@@ -19,6 +19,7 @@ import { ApiConfig } from '@/modules/restful/types';
 import * as configs from './config';
 
 export const createOptions: CreateOptions = {
+    commands: () => [],
     config: { factories: configs as any, storage: { enabled: true } },
     modules: async (configure) => [
         DatabaseModule.forRoot(configure),

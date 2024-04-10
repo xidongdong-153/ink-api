@@ -4,7 +4,7 @@ import { TypeOrmModule, TypeOrmModuleOptions, getDataSourceToken } from '@nestjs
 import { DataSource, ObjectType } from 'typeorm';
 
 import { Configure } from '@/modules/config/configure';
-import { panic } from '@/modules/core/helpers/command';
+import { panic } from '@/modules/core/helpers';
 import { CUSTOM_REPOSITORY_METADATA } from '@/modules/database/constants';
 import {
     DataExistConstraint,

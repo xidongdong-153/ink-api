@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { Configure } from '@/modules/config/configure';
-import { panic } from '@/modules/core/helpers/command';
+import { panic } from '@/modules/core/helpers';
 import { MeiliService } from '@/modules/meilisearch/meili.service';
 
 @Module({})
